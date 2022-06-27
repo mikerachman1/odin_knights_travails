@@ -26,20 +26,35 @@ class Board
     result
   end
 
-  def make_tree(destination, depart = @origin)
-    queue = [Knight.new(depart)]
+  def build_tree(destination, start = @origin)
+    queue = [Knight.new(start)]
     current = queue.shift
-    until current.location == destination
-        moves = possible_moves(current.location)
-        moves.each do |move|
-            node = Knight.new(move, current)
-            queue << node
-            current.children << node
-        end
-        current = queue.shift
+    until current.location == destination do
+      moves = possible_moves(current.location)
+      moves.each do |move|
+        node = Knight.new(move, current) #Create new knight node for each possible move of parent current
+        queue << node #add child to queue
+        current.children << node #add child to parent's chidren array
+      end
+      current = queue.shift
     end
     current
   end
+
+  def trace_back(current, start, history = [])
+    until current.location == start do
+      history << current
+      current = current.parent
+    end
+    history << current
+    history
+  end
+
+  def produce_output(history)
+    puts "You made it in #{history.length} moves! Here's your path:"
+    history.each { |move| p move}
+  end
+
 end
 
 board = Board.new
