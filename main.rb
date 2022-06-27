@@ -1,61 +1,66 @@
+#create data structure where children point back to parent, and parent keeps record of children
 class Knight
   attr_reader :location, :parent
   attr_accessor :children
-
-  def initialize(data, parent = nil)
-    @location = data
-    @children = []
+  def initialize (location, parent = nil)
+    @location = location
     @parent = parent
+    @children = []
   end
 end
 
 class Board
-  def initialize
-    @origin = [0, 0]
+  public
+  #this method ties all previous methods together and is only thing user interacts with
+  def knight_moves(start, destination)
+    last_knight = make_tree(destination, start)
+    history = trace_back(last_knight, start)
+    produce_output(history)
   end
-
-  def possible_moves(start, result = [])
-    #all 8 moves knight can make from any start position
-    moves = [[2, 1], [2, -1], [1, 2], [1, -2], [-1, 2], [-1, -2], [-2, 1], [-2, -1]].freeze
+  
+  private
+  #defines how a knight can move and returns array of possible moves that land on 8x8 board
+  def possible_moves (start, result = [])
+    moves = [[2, 1], [2, -1], [1, 2], [1, -2], [-1, 2], [-1, -2], [-2, 1], [-2, -1]]
     moves.each do |move|
-        #determine possible destinations based on start argument and possible moves
-        destination = [(move[0] + start[0]), (move[1] + start[1])]
-        #only push moves that are on 8x8 board
-        result << destination if destination[0].between?(0, 7) && destination[1].between?(0, 7)
+      destination = [(move[0] + start[0]), (move[1] + start[1])]
+      result << destination if destination[0].between?(0, 7) && destination[1].between?(0, 7)
     end
     result
   end
 
-  def build_tree(destination, start = @origin)
+  #builds data structure breadth first stopping once a knight is found at desired destination, returns final knight node
+  def make_tree (destination, start)
     queue = [Knight.new(start)]
     current = queue.shift
     until current.location == destination do
       moves = possible_moves(current.location)
       moves.each do |move|
-        node = Knight.new(move, current) #Create new knight node for each possible move of parent current
-        queue << node #add child to queue
-        current.children << node #add child to parent's chidren array
+        node = Knight.new(move, current)
+        queue << node
+        current.children << node
       end
       current = queue.shift
     end
     current
   end
 
+  #takes final knight node from make_tree and traces back through parents to arrive back at start, returns locations of knights along path
   def trace_back(current, start, history = [])
     until current.location == start do
-      history << current
+      history << current.location
       current = current.parent
     end
-    history << current
+    history << current.location
     history
   end
 
+  #produces output for knight moves method
   def produce_output(history)
-    puts "You made it in #{history.length} moves! Here's your path:"
-    history.each { |move| p move}
+    puts "You made it in #{history.length} moves!  Here's your path:"
+    history.reverse.each { |move| p move}
   end
-
 end
 
 board = Board.new
-p board.make_tree([3,3])
+board.knight_moves([0,0], [6,7])
